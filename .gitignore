@@ -12,7 +12,12 @@ node_modules
 coverage
 dist
 dist-ssr
+dist-cdk
 *.local
+
+# CDK
+cdk.out/
+dist-cdk/
 
 # Editor directories and files
 .vscode/*
