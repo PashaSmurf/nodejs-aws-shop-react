@@ -11,6 +11,7 @@ import {
   useInvalidateAvailableProducts,
   useRemoveProductCache,
   useUpsertAvailableProduct,
+  useUpdateAvailableProduct,
 } from "~/queries/products";
 
 const initialValues: AvailableProduct = AvailableProductSchema.cast({});
@@ -21,22 +22,40 @@ export default function PageProductForm() {
   const invalidateAvailableProducts = useInvalidateAvailableProducts();
   const removeProductCache = useRemoveProductCache();
   const { data, isLoading } = useAvailableProduct(id);
-  const { mutateAsync: upsertAvailableProduct } = useUpsertAvailableProduct();
+  const { mutateAsync: createProduct } = useUpsertAvailableProduct();
+  const { mutateAsync: updateProduct } = useUpdateAvailableProduct();
+  
   const onSubmit = (values: AvailableProduct) => {
     const formattedValues = AvailableProductSchema.cast(values);
-    const productToSave = id
-      ? {
-          ...formattedValues,
+    
+    if (id) {
+      // UPDATE existing product - only send changed fields
+      return updateProduct(
+        {
           id,
+          title: formattedValues.title,
+          description: formattedValues.description,
+          price: formattedValues.price,
+          count: formattedValues.count,
+        },
+        {
+          onSuccess: () => {
+            invalidateAvailableProducts();
+            removeProductCache(id);
+            navigate("/admin/products");
+          },
         }
-      : formattedValues;
-    return upsertAvailableProduct(productToSave, {
-      onSuccess: () => {
-        invalidateAvailableProducts();
-        removeProductCache(id);
-        navigate("/admin/products");
-      },
-    });
+      );
+    } else {
+      // CREATE new product
+      return createProduct(formattedValues, {
+        onSuccess: () => {
+          invalidateAvailableProducts();
+          removeProductCache(id);
+          navigate("/admin/products");
+        },
+      });
+    }
   };
 
   return (
