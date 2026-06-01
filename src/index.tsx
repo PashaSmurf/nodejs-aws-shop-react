@@ -19,6 +19,13 @@ if (import.meta.env.DEV) {
   worker.start({ onUnhandledRequest: "bypass" });
 }
 
+// Initialize authentication token setup instructions
+if (!localStorage.getItem("authorization_token")) {
+  console.log('%cAuthorization Setup Required', 'color: orange; font-size: 14px; font-weight: bold;');
+  console.log('%cTo set up authorization, run in the browser console:', 'color: blue; font-size: 12px;');
+  console.log('%cconst token = btoa("PashaSmurf:TEST_PASSWORD");\nlocalStorage.setItem("authorization_token", token);', 'color: green; font-family: monospace; font-size: 11px;');
+}
+
 const container = document.getElementById("app");
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const root = createRoot(container!);
