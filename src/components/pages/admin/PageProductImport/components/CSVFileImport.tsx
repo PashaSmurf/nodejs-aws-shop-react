@@ -19,7 +19,7 @@ export default function CSVFileImport({ url, title }: CSVFileImportProps) {
     const files = e.target.files;
     if (files && files.length > 0) {
       const file = files[0];
-      if (file.name.endsWith('.csv')) {
+      if (file.name.endsWith(".csv")) {
         setFile(file);
         setErrorMessage("");
         setSuccessMessage("");
@@ -65,9 +65,9 @@ export default function CSVFileImport({ url, title }: CSVFileImportProps) {
       if (!signedUrlResponse.ok) {
         const errorBody = await signedUrlResponse.text();
         throw new Error(
-          `Failed to get signed URL: ${signedUrlResponse.status} ${signedUrlResponse.statusText}${
-            errorBody ? ` - ${errorBody}` : ""
-          }`
+          `Failed to get signed URL: ${signedUrlResponse.status} ${
+            signedUrlResponse.statusText
+          }${errorBody ? ` - ${errorBody}` : ""}`
         );
       }
 

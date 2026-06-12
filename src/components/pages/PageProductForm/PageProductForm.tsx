@@ -24,10 +24,10 @@ export default function PageProductForm() {
   const { data, isLoading } = useAvailableProduct(id);
   const { mutateAsync: createProduct } = useUpsertAvailableProduct();
   const { mutateAsync: updateProduct } = useUpdateAvailableProduct();
-  
+
   const onSubmit = (values: AvailableProduct) => {
     const formattedValues = AvailableProductSchema.cast(values);
-    
+
     if (id) {
       // UPDATE existing product - only send changed fields
       return updateProduct(
