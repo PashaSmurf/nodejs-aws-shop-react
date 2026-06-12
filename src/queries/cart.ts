@@ -18,19 +18,30 @@ axiosInstance.interceptors.request.use((config) => {
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
-    console.error('API Error:', { status: error.response?.status, statusText: error.response?.statusText, code: error.code, message: error.message });
+    console.error("API Error:", {
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      code: error.code,
+      message: error.message,
+    });
 
     // Check if this is an auth-related error
     const status = error.response?.status;
 
     if (status === 401) {
-      alert('Unauthorized (401)\n\nMissing or invalid Authorization header.\n\nPlease ensure you have set the authorization token in localStorage:\n\nconst token = btoa("PashaSmurf:TEST_PASSWORD");\nlocalStorage.setItem("authorization_token", token);');
+      alert(
+        'Unauthorized (401)\n\nMissing or invalid Authorization header.\n\nPlease ensure you have set the authorization token in localStorage:\n\nconst token = btoa("PashaSmurf:TEST_PASSWORD");\nlocalStorage.setItem("authorization_token", token);'
+      );
     } else if (status === 403) {
-      alert('Forbidden (403)\n\nInvalid credentials provided.\n\nPlease check your username and password.');
+      alert(
+        "Forbidden (403)\n\nInvalid credentials provided.\n\nPlease check your username and password."
+      );
     }
     // Only show network error alert if no token is set
     else if (!error.response && !localStorage.getItem("authorization_token")) {
-      alert('Authorization Failed\n\nPlease ensure you have set the authorization token in localStorage:\n\nconst token = btoa("PashaSmurf:TEST_PASSWORD");\nlocalStorage.setItem("authorization_token", token);');
+      alert(
+        'Authorization Failed\n\nPlease ensure you have set the authorization token in localStorage:\n\nconst token = btoa("PashaSmurf:TEST_PASSWORD");\nlocalStorage.setItem("authorization_token", token);'
+      );
     }
     return Promise.reject(error);
   }
@@ -38,9 +49,11 @@ axiosInstance.interceptors.response.use(
 
 export function useCart() {
   return useQuery<CartItem[], AxiosError>("cart", async () => {
-    const res = await axiosInstance.get<CartItem[]>(`${API_PATHS.cart}/profile/cart`);
+    const res = await axiosInstance.get<CartItem[]>(
+      `${API_PATHS.cart}/api/profile/cart`
+    );
     return res.data;
-  }, { enabled: false }); // Disabled temporarily due to constant errors
+  });
 }
 
 export function useCartData() {
@@ -57,7 +70,29 @@ export function useInvalidateCart() {
 }
 
 export function useUpsertCart() {
-  return useMutation((values: CartItem) =>
-    axiosInstance.put<CartItem[]>(`${API_PATHS.cart}/profile/cart`, values)
+  const invalidateCart = useInvalidateCart();
+  return useMutation(
+    (values: CartItem) =>
+      axiosInstance.put<CartItem[]>(
+        `${API_PATHS.cart}/api/profile/cart`,
+        values
+      ),
+    {
+      onSuccess: () => {
+        invalidateCart();
+      },
+    }
+  );
+}
+
+export function useClearCart() {
+  const invalidateCart = useInvalidateCart();
+  return useMutation(
+    () => axiosInstance.delete<void>(`${API_PATHS.cart}/api/profile/cart`),
+    {
+      onSuccess: () => {
+        invalidateCart();
+      },
+    }
   );
 }
