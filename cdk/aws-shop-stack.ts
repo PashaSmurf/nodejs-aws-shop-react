@@ -22,6 +22,17 @@ export class AwsShopStack extends cdk.Stack {
       encryption: s3.BucketEncryption.S3_MANAGED,
     });
 
+    // Elastic Beanstalk (Cart API) origin. The EB environment only serves
+    // plain HTTP, so we let CloudFront terminate TLS and forward to it over
+    // HTTP. This avoids browser "mixed content" errors because the SPA now
+    // calls the same HTTPS CloudFront domain for the API.
+    const cartApiOrigin = new origins.HttpOrigin(
+      'devel.eba-ybncxefp.us-east-1.elasticbeanstalk.com',
+      {
+        protocolPolicy: cloudfront.OriginProtocolPolicy.HTTP_ONLY,
+      },
+    );
+
     // Create CloudFront distribution with S3BucketOrigin
     const distribution = new cloudfront.Distribution(this, 'AwsShopDistribution', {
       defaultBehavior: {
@@ -29,6 +40,19 @@ export class AwsShopStack extends cdk.Stack {
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
         compress: true,
+      },
+      additionalBehaviors: {
+        // Proxy all Cart/Order API calls to the Elastic Beanstalk backend.
+        '/api/*': {
+          origin: cartApiOrigin,
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+          // Never cache API responses and forward the request as-is
+          // (Authorization header, query string, body) to the backend.
+          cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+          originRequestPolicy:
+            cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+        },
       },
       defaultRootObject: 'index.html',
       errorResponses: [
