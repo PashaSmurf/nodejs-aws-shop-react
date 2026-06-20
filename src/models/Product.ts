@@ -11,5 +11,7 @@ export const AvailableProductSchema = ProductSchema.shape({
   count: Yup.number().integer().min(0).required().defined().default(0),
 });
 
-export type Product = Yup.InferType<typeof ProductSchema>;
-export type AvailableProduct = Yup.InferType<typeof AvailableProductSchema>;
+export type Product = Yup.InferType<typeof ProductSchema> & { image?: string };
+export type AvailableProduct = Yup.InferType<typeof AvailableProductSchema> & {
+  image?: string;
+};

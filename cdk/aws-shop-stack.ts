@@ -33,6 +33,13 @@ export class AwsShopStack extends cdk.Stack {
       },
     );
 
+    const bffApiOrigin = new origins.HttpOrigin(
+      'pavel-liakhouski-bff-api-bff-dev.us-east-1.elasticbeanstalk.com',
+      {
+        protocolPolicy: cloudfront.OriginProtocolPolicy.HTTP_ONLY,
+      },
+    );
+
     // Create CloudFront distribution with S3BucketOrigin
     const distribution = new cloudfront.Distribution(this, 'AwsShopDistribution', {
       defaultBehavior: {
@@ -49,6 +56,15 @@ export class AwsShopStack extends cdk.Stack {
           allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
           // Never cache API responses and forward the request as-is
           // (Authorization header, query string, body) to the backend.
+          cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+          originRequestPolicy:
+            cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+        },
+        // Proxy all BFF calls (Product + Cart go through the BFF) to the BFF.
+        '/bff/*': {
+          origin: bffApiOrigin,
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
           cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
           originRequestPolicy:
             cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
